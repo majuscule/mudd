@@ -1,0 +1,50 @@
+body {
+    margin: 40px 0px;
+    text-align: center;
+}
+
+#universe {
+    margin: 0px auto;
+    border: 50px solid black;
+}
+
+#chat {
+    margin: 15px 3px 15px 3px;
+    padding: 1px 10px;
+    border: 3px solid black;
+    display: inline-block;
+    width: 744px;
+}
+
+#submit {
+    width: 70px;
+    padding: 1px 0;
+    border: 3px solid black;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#log {
+    margin: 20px 3px 15px 3px;
+    padding: 5px 0;
+    border: 3px solid black;
+    display: inline-block;
+    width: 840px;
+    height: 150px;
+}
+
+#log .logline {
+    text-align: left;
+    margin-left: 10px;
+}
+
+#log .logline .yell {
+    font-size: 95%;
+    font-style: italic;
+    color: red;
+}
+
+#log .logline .tell {
+    font-size: 95%;
+    font-style: italic;
+}
