@@ -8,5 +8,6 @@
   </head>
   <body>
     <canvas width='750px' height='750px' id='world'></canvas>
+    <input><div id='submit'>submit</div>
   </body>
 </html>
