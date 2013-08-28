@@ -11,6 +11,7 @@ $(document).ready(function(){
             var rooms = mud.rooms;
             switch (direction) {
                 case 'left':
+                case 'west':
                     if (rooms[this.x-1] && rooms[this.x-1][this.y]
                             && !rooms[this.x-1][this.y].state) {
                         rooms[this.x][this.y].clear();
@@ -19,6 +20,7 @@ $(document).ready(function(){
                     }
                     break;
                 case 'up':
+                case 'north':
                     if (rooms[this.x][this.y-1]
                             && !rooms[this.x][this.y-1].state) {
                         rooms[this.x][this.y].clear();
@@ -27,6 +29,7 @@ $(document).ready(function(){
                     }
                     break;
                 case 'right':
+                case 'east':
                     if (rooms[this.x+1] && rooms[this.x+1][this.y+1]
                         && !rooms[this.x+1][this.y].state) {
                         rooms[this.x][this.y].clear();
@@ -35,6 +38,7 @@ $(document).ready(function(){
                     }
                     break;
                 case 'down':
+                case 'south':
                     if (rooms[this.x][this.y+1]
                         && !rooms[this.x][this.y+1].state) {
                         rooms[this.x][this.y].clear();
@@ -58,7 +62,6 @@ $(document).ready(function(){
             this.state = 1;
         }
         this.clear = function() {
-            console.log('clearing');
             c.fillStyle = "rgb(255,255,255)";
             c.fillRect(this.x, this.y, this.h, this.l);
             this.state = 0;
@@ -128,6 +131,28 @@ $(document).ready(function(){
             }
             e.preventDefault();
         });
+
+        var commands = {
+            tell : function() {},
+            yell : function() {},
+            move : function(direction) {
+                player.move(direction);
+            },
+        }
+        $('#submit').click(function() {
+            var text = $('#chat').val();
+            var parts = text.match(/^(\w+)\s(.*)/);
+            var cmd = parts[1];
+            text = parts[2];
+            if (commands[cmd] != undefined) commands[cmd](text);
+        });
+        $('#chat').keypress(function(e) {
+            if (e.which == '13') {
+                $('#submit').click();
+                $('#chat').val('');
+            }
+        });
+
     }
 
     var mud = new universe;
