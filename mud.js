@@ -1,7 +1,8 @@
 $(document).ready(function(){
     
-    var canvas = $('#world')[0];
+    var canvas = $('#universe')[0];
     var c = canvas.getContext('2d');
+    var endpoint = '/mud/mud.php';
 
     function player(x, y) {
         this.x = x;
@@ -73,6 +74,7 @@ $(document).ready(function(){
     }
 
     function universe() {
+
         this.rooms = [];
 
         this.rows = 30;
@@ -88,7 +90,7 @@ $(document).ready(function(){
             for (var ii = 0; ii < this.columns; ii++) {
                 column.push(new room(x, y, this.roomWidth, this.roomHeight));
                 y += this.roomWidth;
-                Math.random() > .5 ? column[ii].clear() : column[ii].fill();
+                Math.random() > .2 ? column[ii].clear() : column[ii].fill();
             }
             this.rooms.push(column);
         }
@@ -133,23 +135,53 @@ $(document).ready(function(){
         });
 
         var commands = {
-            tell : function() {},
-            yell : function() {},
+            tell : function(msg) {
+                var parts = msg.match(/^(\w+)\s(.*)/);
+                var dest = parts[1];
+                msg = parts[2];
+                $.ajax({
+                    url: endpoint,
+                    data: { 'cmd' : 'tell', 'dest' : dest, 'msg' : msg },
+                    success: function() {
+                        writeToLog('You told ' + dest + ': ', 'tell', msg);
+                    },
+                });
+            },
+            yell : function(msg) {
+                console.log('yell!');
+                $.ajax({
+                    url: endpoint,
+                    data: { 'cmd' : 'yell', 'msg' : msg },
+                    success: function() {
+                        writeToLog('You yelled: ', 'yell', msg);
+                    },
+                });
+            },
             move : function(direction) {
                 player.move(direction);
             },
+        }
+        function writeToLog(action, style, msg) {
+            $('#log').append(
+                $('<div>').addClass('logline').append(
+                    $('<span>').addClass(style).text(action),
+                    $('<span>').addClass('msg').text(msg)
+                )
+            )
         }
         $('#submit').click(function() {
             var text = $('#chat').val();
             var parts = text.match(/^(\w+)\s(.*)/);
             var cmd = parts[1];
             text = parts[2];
-            if (commands[cmd] != undefined) commands[cmd](text);
+            if (commands[cmd] != undefined) {
+                commands[cmd](text);
+                $('#chat').val('');
+            }
         });
         $('#chat').keypress(function(e) {
             if (e.which == '13') {
                 $('#submit').click();
-                $('#chat').val('');
             }
         });
 
