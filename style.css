@@ -1,11 +1,17 @@
 body {
-    margin: 40px 0px;
-    text-align: center;
+    margin: 40px 20px;
 }
 
 #universe {
     margin: 0px auto;
-    border: 50px solid black;
+    border: 10px solid black;
+    float: left;
+}
+
+#controls {
+    float: left;
+    margin-left: 30px;
+    width: 400px;
 }
 
 #chat {
@@ -13,38 +19,48 @@ body {
     padding: 1px 10px;
     border: 3px solid black;
     display: inline-block;
-    width: 744px;
+    width: 244px;
 }
 
-#submit {
+.button {
     width: 70px;
     padding: 1px 0;
     border: 3px solid black;
     display: inline-block;
     cursor: pointer;
+    text-align: center;
+}
+
+#submit {
+    margin-left: 25px;
 }
 
 #log {
-    margin: 20px 3px 15px 3px;
+    margin: 10px 3px 15px 3px;
     padding: 5px 0;
     border: 3px solid black;
     display: inline-block;
-    width: 840px;
+    width: 370px;
     height: 150px;
+    overflow-y: auto;
 }
 
 #log .logline {
+    font-size: 95%;
     text-align: left;
     margin-left: 10px;
 }
 
 #log .logline .yell {
-    font-size: 95%;
     font-style: italic;
     color: red;
 }
 
 #log .logline .tell {
-    font-size: 95%;
+    font-style: italic;
+    color: blue;
+}
+
+#log .logline .say {
     font-style: italic;
 }
