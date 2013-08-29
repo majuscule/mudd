@@ -155,7 +155,8 @@ $(document).ready(function(){
                     $('<span>').addClass(style).text(action),
                     $('<span>').addClass('msg').text(msg)
                 )
-            )
+            );
+            $("#log").animate({ scrollTop: $('#log')[0].scrollHeight}, 1000);
         }
         $('#submit').click(function() {
             var text = $('#chat').val();
@@ -214,6 +215,7 @@ $(document).ready(function(){
                     var msg = messages[i];
                     if (msg.id == self.player.id) continue;
                     writeToLog(msg.name + ':', msg.type, msg.message);
+                    $("#log").animate({ scrollTop: $('#log')[0].scrollHeight}, 1000);
                 }
             });
         }
