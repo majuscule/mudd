@@ -150,6 +150,23 @@ class mud extends model {
             'ssii', $msg, 'yell', $this->player->room, $this->player->id);
     }
 
+//    private function tell($msg) {
+//        // lookup dest
+//        $this->insert(
+//            'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
+//            'ssii', $msg, 'tell', $this->player->room, $this->player->id);
+//    }
+
+    private function say($msg) {
+        $this->insert(
+            'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
+            'ssii', $msg, 'say', $this->player->room, $this->player->id);
+    }
+
+    private function move() {
+        // ahhhhhhhhhhhhhhhhhhhh
+    }
+
     private function poll() {
         $time = isset($_SESSION['last_polled']) ? $_SESSION['last_polled'] : 0;
         $messages = $this->query(
@@ -180,6 +197,7 @@ class mud extends model {
         switch ($cmd) {
             case 'start':
                 $this->response($this->universe->serialize());
+//                $this->response($this->universe->serialize($_GET['restart']));
                 break;
             case 'join':
                 $this->response($this->join());
@@ -202,6 +220,10 @@ class mud extends model {
             case 'poll':
                 echo json_encode($this->poll());
                 break;
+//            case 'respawn':
+//                session_destroy()
+//                session_start()
+//                $this->response($this->join());
             default:
                 $this->error(400, 'Unknown command');
         }
