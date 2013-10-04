@@ -158,7 +158,7 @@ $(document).ready(function(){
                 });
             },
             move : function(direction) {
-                this.player.move(direction);
+                self.player.move(direction);
             },
         }
         this.writeToLog = function(action, style, msg) {
@@ -226,8 +226,6 @@ $(document).ready(function(){
 
         $.getJSON(endpoint, { 'cmd' : 'start' }, function(json) {
             self.build(json)
-        }).fail(function(jqxhr, textStatus, error) {
-            console.log(jqxhr, jqxhr.responseText, textStatus, error);
         });
 
         this.populate = function(players) {

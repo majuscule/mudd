@@ -253,7 +253,7 @@ class mud extends model {
                 $this->update('DELETE FROM players');
                 break;
             default:
-                $this->error(400, 'Unknown command');
+                $this->error(400, 'unknown command');
         }
     }
 
