@@ -147,35 +147,24 @@ class mud extends model {
     }
 
     private function yell($msg) {
-        if (!$msg) {
-            $this->error('400', 'expected `msg` field');
-            return;
-        }
+        if (!$msg) $this->error('400', 'expected `msg` field');
         $this->insert(
             'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
             'ssii', $msg, 'yell', $this->player->room, $this->player->id);
     }
 
     private function say($msg) {
-        if (!$msg) {
-            $this->error('400', 'expected `dest` field');
-            return;
-        }
+        if (!$msg) $this->error('400', 'expected `dest` field');
         $this->insert(
             'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
             'ssii', $msg, 'say', $this->player->room, $this->player->id);
     }
 
     private function tell($dest, $msg) {
-        if (!$dest || !$msg) {
-            $this->error('400', 'expected `dest` and `msg` fields');
-            return;
-        }
+        if (!$dest || !$msg) $this->error('400', 'expected `dest` and `msg` fields');
         $player = $this->query('SELECT id FROM players where name = ?', 's', $dest);
-        if (!($player && $player['id'])) {
+        if (!($player && $player['id']))
             $this->error('400', "could not find a player with `name` == $dest");
-            return;
-        }
         $this->insert(
             'INSERT INTO messages (message,type,destination,source) VALUES(?,?,?,?)',
             'ssii', $msg, 'say', $player['id'], $this->player->id);
@@ -267,6 +256,7 @@ class mud extends model {
     private function error($status, $msg) {
         header("HTTP/1.0 $status");
         echo $msg;
+        exit;
     }
 
 }
