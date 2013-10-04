@@ -65,7 +65,7 @@ class universe {
     public $rooms = array();
 
     public function __construct($db) {
-        $rooms = $db->query("SELECT id,x,y,state FROM rooms");
+        $rooms = $db->query('SELECT id,x,y,state FROM rooms');
         if ($rooms) {
             foreach ($rooms as $room) {
                 $this->rooms[$room['x']][$room['y']] =
@@ -143,7 +143,7 @@ class mud extends model {
                             'si', $_GET['name'], $this->universe->rooms[$x][$y]['id']);
         $_SESSION['id'] = $id;
         //$others = $this->query('SELECT id, room FROM players WHERE id != ?', 'i', $this->player->id);
-        return array('x' => $x, 'y' => $y, 'id' => $id, 'name' => $name);
+        return array('x' => $x, 'y' => $y, 'id' => $id, 'name' => $name, 'poll' => $this->poll());
     }
 
     private function yell($msg) {
@@ -173,8 +173,12 @@ class mud extends model {
                 . ' OR (type = "tell" AND destination = ?)'
                 . ' OR (type = "say" AND messages.room = ?))',
             'iii', $time, $this->player->id, $this->player->room);
+        $players = $this->query(
+            'SELECT players.id, name, x ,y '
+            . 'FROM players JOIN rooms '
+            . 'ON players.room = rooms.id');
         $_SESSION['last_polled'] = time();
-        return $messages;
+        return array('messages' => $messages, 'players' => $players);
     }
 
     public function response($content) {

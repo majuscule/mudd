@@ -66,19 +66,26 @@ $(document).ready(function(){
         this.width = width;
         this.height = height;
         this.state = 0;
+        this.population = 0;
         this.fill = function() {
             c.fillStyle = "rgb(0,0,0)";
             c.fillRect(this.x, this.y, this.height, this.width);
             this.state = 1;
         }
-        this.clear = function() {
-            c.fillStyle = "rgb(255,255,255)";
-            c.fillRect(this.x, this.y, this.height, this.width);
+        this.clear = function(other, player) {
             this.state = 0;
+            this.population--;
+            if (!this.population) {
+                c.fillStyle = "rgb(255,255,255)";
+                c.fillRect(this.x, this.y, this.height, this.width);
+            }
         }
-        this.join = function() {
-            c.fillStyle = "rgb(0,255,0)";
+        this.join = function(other, player) {
+            c.fillStyle = !other || (player && mud && mud.player
+                                    && mud.player.x == player.x && mud.player.y == player.y)
+                            ? "rgb(0,255,0)" : "rgb(0,0,255)";
             c.fillRect(this.x, this.y, this.height, this.width);
+            this.population++;
         }
     }
 
@@ -86,6 +93,7 @@ $(document).ready(function(){
 
         var self = this;
         this.rooms = [];
+        this.players = [];
 
         this.build = function(seed) {
             this.rows = seed.length;
@@ -108,7 +116,9 @@ $(document).ready(function(){
         this.join = function(name) {
             $.getJSON(endpoint, { 'cmd' : 'join', 'name' : name }, function(json) {
                 self.player = new player(json.x, json.y, json.id);
+                console.log(mud);
                 setInterval(self.poll, 1000);
+                self.populate(json.poll.players);
             });
         }
 
@@ -214,19 +224,27 @@ $(document).ready(function(){
 
         $.getJSON(endpoint, { 'cmd' : 'start' }, function(json) {
             self.build(json)
-        })
-        .fail(function(jqxhr, textStatus, error) {
+        }).fail(function(jqxhr, textStatus, error) {
             console.log(jqxhr, jqxhr.responseText, textStatus, error);
         });
 
+        this.populate = function(players) {
+            for (var i in this.players)
+                mud.rooms[this.players[i].x][this.players[i].y].clear();
+            this.players = players;
+            for (var i in this.players)
+                mud.rooms[this.players[i].x][this.players[i].y].join(1, this.players[i]);
+        }
+
         this.poll = function() {
-            $.getJSON(endpoint, { 'cmd' : 'poll' }, function(messages) {
-                for (var i in messages) {
+            $.getJSON(endpoint, { 'cmd' : 'poll' }, function(json) {
+                for (var i in json.messages) {
                     var msg = messages[i];
                     if (msg.id == self.player.id) continue;
                     writeToLog(msg.name + ':', msg.type, msg.message);
-                    $("#log").animate({ scrollTop: $('#log')[0].scrollHeight}, 1000);
+                    $("#log").animate({ scrollTop: $('#log')[0].scrollHeight }, 1000);
                 }
+                self.populate(json.players);
             });
         }
     }
