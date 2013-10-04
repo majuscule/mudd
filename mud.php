@@ -164,7 +164,7 @@ class mud extends model {
         if (!$dest || !$msg) $this->error('400', 'expected `dest` and `msg` fields');
         $player = $this->query('SELECT id FROM players where name = ?', 's', $dest);
         if (!($player && $player['id']))
-            $this->error('400', "could not find a player with `name` == $dest");
+            $this->error(400, "could not find a player with `name` == $dest");
         $this->insert(
             'INSERT INTO messages (message,type,destination,source) VALUES(?,?,?,?)',
             'ssii', $msg, 'say', $player['id'], $this->player->id);
@@ -220,7 +220,8 @@ class mud extends model {
     public function command($cmd) {
         if (!$_GET['cmd'])
             $this->error(400, 'Missing command: expected `cmd` field');
-        if ($_GET['cmd'] != 'join' && $_GET['cmd'] != 'start' && !isset($_SESSION['id']))
+        if (($_GET['cmd'] != 'join' && $_GET['cmd'] != 'kick')
+            && $_GET['cmd'] != 'start' && !isset($_SESSION['id']))
             $this->error(401, 'Missing user ID: please join first');
         if (isset($_SESSION['id'])) $this->player = new player($this);
         switch ($cmd) {
@@ -246,7 +247,10 @@ class mud extends model {
                 $this->tell();
                 break;
             case 'poll':
-                echo json_encode($this->poll());
+                $this->response($this->poll());
+                break;
+            case 'kick':
+                $this->update('DELETE FROM players');
                 break;
             default:
                 $this->error(400, 'Unknown command');
