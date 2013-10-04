@@ -8,33 +8,39 @@ $(document).ready(function(){
         this.x = x;
         this.y = y;
         this.id = id;
+        self = this;
 
         mud.rooms[this.x][this.y].join();
 
         this.move = function(direction) {
             var rooms = mud.rooms;
+
+            function move(direction, oldroom, newroom) {
+                $.get(endpoint, {
+                        'cmd' : 'move',
+                        'direction' : direction
+                    }, function(json) {
+                        oldroom.clear();
+                        newroom.join();
+                        if (json && json.description)
+                            writeToLog('', 'env', json.description);
+                    }
+                );
+            }
             switch (direction) {
                 case 'left':
                 case 'west':
                     if (rooms[this.x-1] && rooms[this.x-1][this.y]
                             && !rooms[this.x-1][this.y].state) {
-//                        $.get(endpoint, {
-//                                'cmd' : 'move',
-//                                'name' : 'majuscule',
-//                                'direction' : 'west'
-//                            }, function() {
-                            rooms[this.x][this.y].clear();
-                            rooms[this.x-1][this.y].join();
-                            this.x--;
-//                        });
+                        move('west', rooms[self.x][self.y], rooms[self.x-1][self.y])
+                        this.x--;
                     }
                     break;
                 case 'up':
                 case 'north':
                     if (rooms[this.x][this.y-1]
                             && !rooms[this.x][this.y-1].state) {
-                        rooms[this.x][this.y].clear();
-                        rooms[this.x][this.y-1].join();
+                        move('north', rooms[this.x][this.y], rooms[this.x][this.y-1]);
                         this.y--;
                     }
                     break;
@@ -42,8 +48,7 @@ $(document).ready(function(){
                 case 'east':
                     if (rooms[this.x+1] && rooms[this.x+1][this.y]
                         && !rooms[this.x+1][this.y].state) {
-                        rooms[this.x][this.y].clear();
-                        rooms[this.x+1][this.y].join();
+                        move('east', rooms[this.x][this.y], rooms[this.x+1][this.y]);
                         this.x++;
                     }
                     break;
@@ -51,8 +56,7 @@ $(document).ready(function(){
                 case 'south':
                     if (rooms[this.x][this.y+1]
                         && !rooms[this.x][this.y+1].state) {
-                        rooms[this.x][this.y].clear();
-                        rooms[this.x][this.y+1].join();
+                        move('south', rooms[this.x][this.y], rooms[this.x][this.y+1]);
                         this.y++;
                     }
                     break;
@@ -116,7 +120,6 @@ $(document).ready(function(){
         this.join = function(name) {
             $.getJSON(endpoint, { 'cmd' : 'join', 'name' : name }, function(json) {
                 self.player = new player(json.x, json.y, json.id);
-                console.log(mud);
                 setInterval(self.poll, 1000);
                 self.populate(json.poll.players);
             });
@@ -124,42 +127,41 @@ $(document).ready(function(){
 
         var commands = {
             tell : function(msg) {
-                       console.log(msg);
                 var parts = msg.match(/^(\w+)\s(.*)/);
                 if (!parts[1]) return;
                 var dest = parts[1];
                 msg = parts[2];
-//                $.ajax({
-//                    url: endpoint,
-//                    data: { 'cmd' : 'tell', 'dest' : dest, 'msg' : msg },
-//                    success: function() {
-                        writeToLog('You told ' + dest + ': ', 'tell', msg);
-//                    },
-//                });
+                $.ajax({
+                    url: endpoint,
+                    data: { 'cmd' : 'tell', 'dest' : dest, 'msg' : msg },
+                    success: function() {
+                      self.writeToLog('You told ' + dest + ': ', 'tell', msg);
+                    },
+                });
             },
             yell : function(msg) {
                 $.ajax({
                     url: endpoint,
                     data: { 'cmd' : 'yell', 'msg' : msg },
                     success: function() {
-                        writeToLog('You yelled: ', 'yell', msg);
+                        self.writeToLog('You yelled: ', 'yell', msg);
                     },
                 });
             },
             say : function(msg) {
-//                $.ajax({
-//                    url: endpoint,
-//                    data: { 'cmd' : 'yell', 'msg' : msg },
-//                    success: function() {
-                        writeToLog('You said: ', 'say', msg);
-//                    },
-//                });
+                $.ajax({
+                    url: endpoint,
+                    data: { 'cmd' : 'say', 'msg' : msg },
+                    success: function() {
+                        self.writeToLog('You said: ', 'say', msg);
+                    },
+                });
             },
             move : function(direction) {
                 this.player.move(direction);
             },
         }
-        function writeToLog(action, style, msg) {
+        this.writeToLog = function(action, style, msg) {
             $('#log').append(
                 $('<div>').addClass('logline').append(
                     $('<span>').addClass(style).text(action),
@@ -230,18 +232,20 @@ $(document).ready(function(){
 
         this.populate = function(players) {
             for (var i in this.players)
-                mud.rooms[this.players[i].x][this.players[i].y].clear();
+                if (this.players[i].id != this.player.id)
+                    mud.rooms[this.players[i].x][this.players[i].y].clear();
             this.players = players;
             for (var i in this.players)
-                mud.rooms[this.players[i].x][this.players[i].y].join(1, this.players[i]);
+                if (this.players[i].id != this.player.id)
+                    mud.rooms[this.players[i].x][this.players[i].y].join(1, this.players[i]);
         }
 
         this.poll = function() {
             $.getJSON(endpoint, { 'cmd' : 'poll' }, function(json) {
                 for (var i in json.messages) {
-                    var msg = messages[i];
+                    var msg = json.messages[i];
                     if (msg.id == self.player.id) continue;
-                    writeToLog(msg.name + ':', msg.type, msg.message);
+                    self.writeToLog(msg.name + ':', msg.type, msg.message);
                     $("#log").animate({ scrollTop: $('#log')[0].scrollHeight }, 1000);
                 }
                 self.populate(json.players);

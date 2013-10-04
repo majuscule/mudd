@@ -68,3 +68,8 @@ body {
 #log .logline .say {
     font-style: italic;
 }
+
+#log .logline .env {
+    font-style: italic;
+    font-size: 95%;
+}

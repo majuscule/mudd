@@ -143,22 +143,64 @@ class mud extends model {
                             'si', $_GET['name'], $this->universe->rooms[$x][$y]['id']);
         $_SESSION['id'] = $id;
         //$others = $this->query('SELECT id, room FROM players WHERE id != ?', 'i', $this->player->id);
-        return array('x' => $x, 'y' => $y, 'id' => $id, 'name' => $name, 'poll' => $this->poll());
+        return array('x' => $x, 'y' => $y, 'id' => $id, 'poll' => $this->poll());
     }
 
     private function yell($msg) {
+        if (!$msg) {
+            $this->error('400', 'expected `msg` field');
+            return;
+        }
         $this->insert(
             'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
             'ssii', $msg, 'yell', $this->player->room, $this->player->id);
     }
 
     private function say($msg) {
+        if (!$msg) {
+            $this->error('400', 'expected `dest` field');
+            return;
+        }
         $this->insert(
             'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
             'ssii', $msg, 'say', $this->player->room, $this->player->id);
     }
 
-    private function move() {
+    private function tell($dest, $msg) {
+        if (!$dest || !$msg) {
+            $this->error('400', 'expected `dest` and `msg` fields');
+            return;
+        }
+        $player = $this->query('SELECT id FROM players where name = ?', 's', $dest);
+        if (!($player && $player['id'])) {
+            $this->error('400', "could not find a player with `name` == $dest");
+            return;
+        }
+        $this->insert(
+            'INSERT INTO messages (message,type,destination,source) VALUES(?,?,?,?)',
+            'ssii', $msg, 'say', $player['id'], $this->player->id);
+    }
+
+    private function move($direction) {
+        $directions = array(
+            'north' => array('x' => $this->player->x,   'y' => $this->player->y-1),
+            'east'  => array('x' => $this->player->x+1, 'y' => $this->player->y),
+            'south' => array('x' => $this->player->x,   'y' => $this->player->y+1),
+            'west'  => array('x' => $this->player->x-1, 'y' => $this->player->y),
+        );
+        if ($directions[$direction]) {
+            $rooms = $this->query(
+                'SELECT id, state, description FROM rooms WHERE x = ? and y = ?',
+                'ii', $directions[$direction]['x'], $directions[$direction]['y']);
+            if ($rooms[0] && !$rooms[0]['state']) {
+                $this->update('UPDATE players SET room = ? WHERE players.id = ?',
+                    'si', $rooms[0]['id'], $this->player->id);
+                return array('description' => $rooms[0]['description']);
+            } else {
+                $this->error(403, 'your path is blocked');
+            }
+        } else
+            $this->error(400, 'expected `direction` field with value {north|east|south|west}');
     }
 
     private function poll() {
@@ -200,16 +242,16 @@ class mud extends model {
                 $this->response($this->join());
                 break;
             case 'move':
-                $this->response(array('valid' => $this->move()));
+                $this->response($this->move($_GET['direction']));
                 break;
             case 'tell':
-                $this->tell();
+                $this->tell($_GET['msg']);
                 break;
             case 'yell':
                 $this->yell($_GET['msg']);
                 break;
             case 'say':
-                $this->say();
+                $this->say($_GET['dest'], $_GET['msg']);
                 break;
             case 'tell':
                 $this->tell();
