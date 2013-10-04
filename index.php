@@ -8,10 +8,11 @@
   </head>
   <body>
     <canvas width='450px' height='450px' id='universe'></canvas>
-    <div id="controls">
-        <input id='chat'><div class='button' id='submit'>submit</div>
-        <div id='log'></div>
+    <div id='controls'>
+        <input id='chat'>
         <div class='button' id='join'>join</div>
+        <div class='button' id='submit'>submit</div>
+        <div id='log'></div>
     </div>
   </body>
 </html>

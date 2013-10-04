@@ -105,8 +105,8 @@ $(document).ready(function(){
             }
         }
 
-        this.join = function() {
-            $.getJSON(endpoint, { 'cmd' : 'join' }, function(json) {
+        this.join = function(name) {
+            $.getJSON(endpoint, { 'cmd' : 'join', 'name' : name }, function(json) {
                 self.player = new player(json.x, json.y, json.id);
                 setInterval(self.poll, 1000);
             });
@@ -172,13 +172,23 @@ $(document).ready(function(){
         });
         $('#chat').keydown(function(e) {
             if (e.which == '13') {
-                $('#submit').click();
+                typeof self.player == 'undefined' ?
+                    $('#join').click() : $('#submit').click();
             } else if (e.which >= 37 && e.which <= 40)
                 e.stopPropagation();
         });
         $('#join').click(function() {
-            mud.join();
-            $(this).fadeOut('slow');
+            var chat = $('#chat');
+            if (chat.val() == '') {
+                chat.css('border-color', 'red');
+                return;
+            }
+            mud.join(chat.val());
+            chat.css('border-color', 'black').val('');
+            $(this).fadeOut('slow', function() {
+                $('#log, #submit').fadeIn('slow')
+                    .css('display', 'inline-block');
+            });
         });
 
         $(document).keydown(function(e) {

@@ -49,6 +49,14 @@ abstract class model {
         return $this->db->insert_id;
     }
 
+    public function update() {
+        $args = func_get_args();
+        $statement = $this->db->prepare(array_shift($args));
+        call_user_func_array(array($statement, 'bind_param'), &$args);
+        $statement->execute();
+        return $this->db->insert_id;
+    }
+
 }
 
 class universe {
@@ -126,22 +134,16 @@ class mud extends model {
     }
 
     private function join() {
-        $x = 0;
-        $y = 0;
-        if (isset($_SESSION['id'])) {
-            $x = $this->player->x;
-            $y = $this->player->y;
-            $id = $this->player->id;
-        } else {
-            do {
-                $x = rand(0, count($this->universe->rooms)-1);
-                $y = rand(0, count($this->universe->rooms[0])-1);
-            } while ($this->universe->rooms[$x][$y]['state']);
-            $id = $this->insert('INSERT INTO players (name,room) VALUES(?,?)',
-                                'si', 'majuscule', $this->universe->rooms[$x][$y]['id']);
-            $_SESSION['id'] = $id;
-        }
-        return array('x' => $x, 'y' => $y, 'id' => $id);
+        $x = $y = 0;
+        do {
+            $x = rand(0, count($this->universe->rooms)-1);
+            $y = rand(0, count($this->universe->rooms[0])-1);
+        } while ($this->universe->rooms[$x][$y]['state']);
+        $id = $this->insert('INSERT INTO players (name,room) VALUES(?,?)',
+                            'si', $_GET['name'], $this->universe->rooms[$x][$y]['id']);
+        $_SESSION['id'] = $id;
+        //$others = $this->query('SELECT id, room FROM players WHERE id != ?', 'i', $this->player->id);
+        return array('x' => $x, 'y' => $y, 'id' => $id, 'name' => $name);
     }
 
     private function yell($msg) {
@@ -150,13 +152,6 @@ class mud extends model {
             'ssii', $msg, 'yell', $this->player->room, $this->player->id);
     }
 
-//    private function tell($msg) {
-//        // lookup dest
-//        $this->insert(
-//            'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
-//            'ssii', $msg, 'tell', $this->player->room, $this->player->id);
-//    }
-
     private function say($msg) {
         $this->insert(
             'INSERT INTO messages (message,type,room,source) VALUES(?,?,?,?)',
@@ -164,7 +159,6 @@ class mud extends model {
     }
 
     private function move() {
-        // ahhhhhhhhhhhhhhhhhhhh
     }
 
     private function poll() {
@@ -197,7 +191,6 @@ class mud extends model {
         switch ($cmd) {
             case 'start':
                 $this->response($this->universe->serialize());
-//                $this->response($this->universe->serialize($_GET['restart']));
                 break;
             case 'join':
                 $this->response($this->join());
@@ -220,10 +213,6 @@ class mud extends model {
             case 'poll':
                 echo json_encode($this->poll());
                 break;
-//            case 'respawn':
-//                session_destroy()
-//                session_start()
-//                $this->response($this->join());
             default:
                 $this->error(400, 'Unknown command');
         }
