@@ -241,10 +241,10 @@ class mud extends model {
                 $this->yell($_GET['msg']);
                 break;
             case 'say':
-                $this->say($_GET['dest'], $_GET['msg']);
+                $this->say($_GET['msg']);
                 break;
             case 'tell':
-                $this->tell();
+                $this->tell($_GET['dest'], $_GET['msg']);
                 break;
             case 'poll':
                 $this->response($this->poll());
