@@ -22,7 +22,8 @@ abstract class model {
     public function query() {
         $args = func_get_args();
         $statement = $this->db->prepare(array_shift($args));
-        if ($args) call_user_func_array(array($statement, 'bind_param'), &$args);
+        #if ($args) call_user_func_array(array($statement, 'bind_param'), &$args);
+        if ($args) call_user_func_array(array($statement, 'bind_param'), $args);
         $statement->execute();
         $statement->store_result();
         $statement->store_result();
@@ -44,7 +45,7 @@ abstract class model {
     public function insert() {
         $args = func_get_args();
         $statement = $this->db->prepare(array_shift($args));
-        call_user_func_array(array($statement, 'bind_param'), &$args);
+        call_user_func_array(array($statement, 'bind_param'), $args);
         $statement->execute();
         return $this->db->insert_id;
     }
@@ -52,7 +53,7 @@ abstract class model {
     public function update() {
         $args = func_get_args();
         $statement = $this->db->prepare(array_shift($args));
-        call_user_func_array(array($statement, 'bind_param'), &$args);
+        call_user_func_array(array($statement, 'bind_param'), $args);
         $statement->execute();
         return $this->db->insert_id;
     }
